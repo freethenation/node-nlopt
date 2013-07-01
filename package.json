@@ -6,6 +6,10 @@
   "private": true,
   "gypfile": true,
   "scripts":{
-    "preinstall":"cd ./nlopt-2.3/ && make clean && ./configure"
+    "preinstall":"cd ./nlopt-2.3/ && make clean && ./configure",
+    "install":"node-gyp rebuild"
+  },
+  "dependencies": {
+    "node-gyp": "*"
   }
 }

@@ -1,8 +1,8 @@
 {
   "targets": [
     {
-      "target_name": "hello",
-      "sources": [ "hello.cc" ],
+      "target_name": "nlopt",
+      "sources": [ "nlopt.cc" ],
        "include_dirs": [
 	     "./nlopt-2.3/api/"
 	   ],
