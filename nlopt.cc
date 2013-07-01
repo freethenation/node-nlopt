@@ -2,6 +2,7 @@
 #include <v8.h>
 #include <math.h>
 #include <nlopt.h>
+#include <stdio.h>
 
 using namespace v8;
 
@@ -35,37 +36,37 @@ void checkNloptErrorCode(Local<Object>& errors, Local<String>& operation, nlopt_
       str = "Success";
       break;
     case NLOPT_STOPVAL_REACHED:
-      str = "Optimization stopped because stopval was reached";
+      str = "Success: Optimization stopped because stopval was reached";
       break;
     case NLOPT_FTOL_REACHED:
-      str = "Optimization stopped because ftol_rel or ftol_abs was reached";
+      str = "Success: Optimization stopped because ftol_rel or ftol_abs was reached";
       break;
     case NLOPT_XTOL_REACHED:
-      str = "Optimization stopped because xtol_rel or xtol_abs was reached";
+      str = "Success: Optimization stopped because xtol_rel or xtol_abs was reached";
       break;
     case NLOPT_MAXEVAL_REACHED:
-      str = "Optimization stopped because maxeval was reached";
+      str = "Success: Optimization stopped because maxeval was reached";
       break;
     case NLOPT_MAXTIME_REACHED:
-      str = "Optimization stopped because maxtime was reached";
+      str = "Success: Optimization stopped because maxtime was reached";
       break;
     case NLOPT_FAILURE:
       str = "Failer";
       break;
     case NLOPT_INVALID_ARGS:
-      str = "Invalid arguments";
+      str = "Failer: Invalid arguments";
       break;
     case NLOPT_OUT_OF_MEMORY:
-      str = "Ran out of memory";
+      str = "Failer: Ran out of memory";
       break;
     case NLOPT_ROUNDOFF_LIMITED:
-      str = "Halted because roundoff errors limited progress";
+      str = "Failer: Halted because roundoff errors limited progress";
       break;
     case NLOPT_FORCED_STOP:
-      str = "Halted because of a forced termination";
+      str = "Failer: Halted because of a forced termination";
       break;
     default:
-      str = "Unknown Error Code";
+      str = "Failer: Unknown Error Code";
       break;
   }
   //set error message for operation
@@ -79,11 +80,12 @@ void checkNloptErrorCode(Local<Object>& errors, Local<String>& operation, nlopt_
     val_##NAME = Local<TYPE>::Cast(OBJ->Get(key_##NAME)); \
   }
 
-#define CHECK_CODE(NAME) checkNloptErrorCode(ret, key_##NAME, code);
+#define CHECK_CODE(NAME) \
+  checkNloptErrorCode(ret, key_##NAME, code);
 
 #define SIMPLE_CONFIG_OPTION(NAME, CONFIG_METHOD) \
   GET_VALUE(Number, NAME, options) \
-  if(!val_##NAME->IsUndefined()){ \
+  if(!val_##NAME.IsEmpty()){ \
     code = CONFIG_METHOD(opt, val_##NAME->Value()); \
     CHECK_CODE(NAME) \
   }
@@ -92,7 +94,7 @@ double optimizationFunc(unsigned n, const double* x, double* grad, void* ptrCall
 {
   HandleScope scope;
   Local<Value> undefined;
-  Local<Function>* callback = (Local<Function>*)ptrCallback;
+  Function* callback = (Function*)ptrCallback;
   double returnValue = -1;
 
   //prepare parms to callback
@@ -106,23 +108,28 @@ double optimizationFunc(unsigned n, const double* x, double* grad, void* ptrCall
   }
   argv[2] = v8Grad;
   //call callback
-  Local<Value> ret = (*callback)->Call(Context::GetCurrent()->Global(), 3, argv);
+  printf("x %6.6f, %6.6f\n", x[0], x[1]);
+  Local<Value> ret = callback->Call(Context::GetCurrent()->Global(), 3, argv);
   //validate return results
   if(!ret->IsNumber()){
     ThrowException(Exception::TypeError(String::New("Objective or constraint function must return a number.")));
   }
-  else if(!v8Grad->IsUndefined() && v8Grad->Length() != n){
+  else if(!v8Grad.IsEmpty() && v8Grad->Length() != n){
     ThrowException(Exception::TypeError(String::New("Length of gradient array must be the same as the number of parameters.")));
   }
   else { //success
-    if(!v8Grad->IsUndefined()){
+    if(!v8Grad.IsEmpty()){
       for (unsigned i = 0; i < n; ++i) {
         grad[i] = v8Grad->Get(i)->NumberValue();
       }
+      printf("js grad %6.6f, %6.6f\n", grad[0], grad[1]);
+      printf("c grad %6.6f, %6.6f\n", 3.0 * -1.0 * (-1.0*x[0] + 1.0) * (-1.0*x[0] + 1.0), -1.0);
     }
     returnValue = ret->NumberValue();
   }
   scope.Close(undefined);
+  printf("js return %6.6f\n", returnValue);
+  printf("c return %6.6f\n\n", (-1.0*x[0] + 1.0) * (-1.0*x[0] + 1.0) * (-1.0*x[0] + 1.0) - x[1]);
   return returnValue;
 }
 
@@ -137,12 +144,12 @@ Handle<Value> Optimize(const Arguments& args) {
 
   //basic nlopt config
   GET_VALUE(Number, algorithm, options)
-  if(val_algorithm->IsUndefined()){
+  if(val_algorithm.IsEmpty()){
     ThrowException(Exception::TypeError(String::New("algorithm must be specified")));
     return scope.Close(ret);
   }
   GET_VALUE(Number, numberOfParameters, options)
-  if(val_numberOfParameters->IsUndefined()) {
+  if(val_numberOfParameters.IsEmpty()) {
     ThrowException(Exception::TypeError(String::New("numberOfParameters must be specified")));
     return scope.Close(ret);
   }
@@ -153,12 +160,12 @@ Handle<Value> Optimize(const Arguments& args) {
   //objective function
   GET_VALUE(Function, minObjectiveFunction, options)
   GET_VALUE(Function, maxObjectiveFunction, options)
-  if(!val_minObjectiveFunction->IsUndefined()){
-    code = nlopt_set_min_objective(opt, optimizationFunc, &val_minObjectiveFunction);
+  if(!val_minObjectiveFunction.IsEmpty()){
+    code = nlopt_set_min_objective(opt, optimizationFunc, *val_minObjectiveFunction);
     CHECK_CODE(minObjectiveFunction)
   }
-  else if(!val_maxObjectiveFunction->IsUndefined()){
-    code = nlopt_set_max_objective(opt, optimizationFunc, &val_maxObjectiveFunction);
+  else if(!val_maxObjectiveFunction.IsEmpty()){
+    code = nlopt_set_max_objective(opt, optimizationFunc, *val_maxObjectiveFunction);
     CHECK_CODE(maxObjectiveFunction)
   }
   else{
@@ -168,7 +175,7 @@ Handle<Value> Optimize(const Arguments& args) {
 
   //optional parms
   GET_VALUE(Array, lowerBounds, options)
-  if(!val_lowerBounds->IsUndefined()){
+  if(!val_lowerBounds.IsEmpty()){
     double* lowerBounds = v8ArrayToCArray(val_lowerBounds);
     code = nlopt_set_lower_bounds(opt, lowerBounds);
     CHECK_CODE(lowerBounds)
@@ -176,35 +183,11 @@ Handle<Value> Optimize(const Arguments& args) {
   }
 
   GET_VALUE(Array, upperBounds, options)
-  if(!val_lowerBounds->IsUndefined()){
-    double* upperBounds = v8ArrayToCArray(val_lowerBounds);
+  if(!val_upperBounds.IsEmpty()){
+    double* upperBounds = v8ArrayToCArray(val_upperBounds);
     code = nlopt_set_upper_bounds(opt, upperBounds);
     CHECK_CODE(upperBounds)
     delete[] upperBounds;
-  }
-
-  GET_VALUE(Array, inequalityConstraints, options)
-  if(!val_inequalityConstraints->IsUndefined()){
-    for (unsigned i = 0; i < val_inequalityConstraints->Length(); ++i)
-    {
-      Local<Object> obj = Local<Object>::Cast(val_inequalityConstraints->Get(i));
-      GET_VALUE(Function, callback, obj)
-      GET_VALUE(Number, tolerance, obj)
-      code = nlopt_add_inequality_constraint(opt, optimizationFunc, &val_callback, val_tolerance->NumberValue());
-      CHECK_CODE(inequalityConstraints)
-    }
-  }
-
-  GET_VALUE(Array, equalityConstraints, options)
-  if(!val_inequalityConstraints->IsUndefined()){
-    for (unsigned i = 0; i < val_inequalityConstraints->Length(); ++i)
-    {
-      Local<Object> obj = Local<Object>::Cast(val_equalityConstraints->Get(i));
-      GET_VALUE(Function, callback, obj)
-      GET_VALUE(Number, tolerance, obj)
-      code = nlopt_add_inequality_constraint(opt, optimizationFunc, &val_callback, val_tolerance->NumberValue());
-      CHECK_CODE(equalityConstraints)
-    }
   }
 
   SIMPLE_CONFIG_OPTION(stopValue, nlopt_set_stopval)
@@ -215,26 +198,51 @@ Handle<Value> Optimize(const Arguments& args) {
   SIMPLE_CONFIG_OPTION(stopBasedOnMaxEvals, nlopt_set_maxeval)
   SIMPLE_CONFIG_OPTION(stopBasedOnMaxTime, nlopt_set_maxtime)
 
+  GET_VALUE(Array, inequalityConstraints, options)
+  if(!val_inequalityConstraints.IsEmpty()){
+    for (unsigned i = 0; i < val_inequalityConstraints->Length(); ++i)
+    {
+      Local<Object> obj = Local<Object>::Cast(val_inequalityConstraints->Get(i));
+      GET_VALUE(Function, callback, obj)
+      GET_VALUE(Number, tolerance, obj)
+      code = nlopt_add_inequality_constraint(opt, optimizationFunc, *val_callback, val_tolerance->NumberValue());
+      CHECK_CODE(inequalityConstraints)
+    }
+  }
+
+  
+  GET_VALUE(Array, equalityConstraints, options)
+  if(!val_equalityConstraints.IsEmpty()){
+    for (unsigned i = 0; i < val_equalityConstraints->Length(); ++i)
+    {
+      Local<Object> obj = Local<Object>::Cast(val_equalityConstraints->Get(i));
+      GET_VALUE(Function, callback, obj)
+      GET_VALUE(Number, tolerance, obj)
+      code = nlopt_add_equality_constraint(opt, optimizationFunc, *val_callback, val_tolerance->NumberValue());
+      CHECK_CODE(equalityConstraints)
+    }
+  }
+
   //setup parms for optimization
   double input[n];
-  double output[n];
   for (unsigned i = 0; i < n; ++i) {
     input[i] = 0;
-    output[i] = 0;
   }
-  //inital guess
-  GET_VALUE(Array, intalGuess, options)
-  if(!val_intalGuess->IsUndefined()){
-    for (unsigned i = 0; i < n; ++i) {
-      input[i] = val_intalGuess->Get(i)->NumberValue();
+  //initalGuess
+  GET_VALUE(Array, initalGuess, options)
+  if(!val_initalGuess.IsEmpty()){
+    ret->Set(key_initalGuess, String::New("Success"));
+    for (unsigned i = 0; i < val_initalGuess->Length(); ++i) {
+      input[i] = val_initalGuess->Get(i)->NumberValue();
     }
   }
   //do the optimization!
-  key = Local<String>::New(String::NewSymbol("optimzationResult"));
+  key = Local<String>::New(String::NewSymbol("status"));
+  double output[1] = {0};
   checkNloptErrorCode(ret, key, nlopt_optimize(opt, input, output));
-  ret->Set(String::NewSymbol("outValues"), cArrayToV8Array(n, input));
-  ret->Set(String::NewSymbol("outObjectiveValues"), cArrayToV8Array(n, output));
-
+  ret->Set(String::NewSymbol("parameterValues"), cArrayToV8Array(n, input));
+  ret->Set(String::NewSymbol("outputValue"), Number::New(output[0]));
+  nlopt_destroy(opt);//cleanup
   return scope.Close(ret);
 }
 
