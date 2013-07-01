@@ -11,5 +11,13 @@
   },
   "dependencies": {
     "node-gyp": "*"
+  },
+  "devDependencies": {
+    "coffee-script": "*",
+    "file": "*",
+    "open": "*",
+    "request": "*",
+    "expect.js": "*",
+    "mocha": "*"
   }
 }
