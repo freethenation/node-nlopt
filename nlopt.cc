@@ -36,19 +36,19 @@ void checkNloptErrorCode(Local<Object>& errors, Local<String>& operation, nlopt_
       str = "Success";
       break;
     case NLOPT_STOPVAL_REACHED:
-      str = "Success: Optimization stopped because stopval was reached";
+      str = "Success: Optimization stopped because stopValue was reached";
       break;
     case NLOPT_FTOL_REACHED:
-      str = "Success: Optimization stopped because ftol_rel or ftol_abs was reached";
+      str = "Success: Optimization stopped because fToleranceRelative or fToleranceAbsolute was reached";
       break;
     case NLOPT_XTOL_REACHED:
-      str = "Success: Optimization stopped because xtol_rel or xtol_abs was reached";
+      str = "Success: Optimization stopped because xToleranceRelative or xToleranceAbsolute was reached";
       break;
     case NLOPT_MAXEVAL_REACHED:
-      str = "Success: Optimization stopped because maxeval was reached";
+      str = "Success: Optimization stopped because maxEval was reached";
       break;
     case NLOPT_MAXTIME_REACHED:
-      str = "Success: Optimization stopped because maxtime was reached";
+      str = "Success: Optimization stopped because maxTime was reached";
       break;
     case NLOPT_FAILURE:
       str = "Failer";
@@ -108,7 +108,6 @@ double optimizationFunc(unsigned n, const double* x, double* grad, void* ptrCall
   }
   argv[2] = v8Grad;
   //call callback
-  printf("x %6.6f, %6.6f\n", x[0], x[1]);
   Local<Value> ret = callback->Call(Context::GetCurrent()->Global(), 3, argv);
   //validate return results
   if(!ret->IsNumber()){
@@ -122,14 +121,10 @@ double optimizationFunc(unsigned n, const double* x, double* grad, void* ptrCall
       for (unsigned i = 0; i < n; ++i) {
         grad[i] = v8Grad->Get(i)->NumberValue();
       }
-      printf("js grad %6.6f, %6.6f\n", grad[0], grad[1]);
-      printf("c grad %6.6f, %6.6f\n", 3.0 * -1.0 * (-1.0*x[0] + 1.0) * (-1.0*x[0] + 1.0), -1.0);
     }
     returnValue = ret->NumberValue();
   }
   scope.Close(undefined);
-  printf("js return %6.6f\n", returnValue);
-  printf("c return %6.6f\n\n", (-1.0*x[0] + 1.0) * (-1.0*x[0] + 1.0) * (-1.0*x[0] + 1.0) - x[1]);
   return returnValue;
 }
 
@@ -191,12 +186,12 @@ Handle<Value> Optimize(const Arguments& args) {
   }
 
   SIMPLE_CONFIG_OPTION(stopValue, nlopt_set_stopval)
-  SIMPLE_CONFIG_OPTION(stopBasedOnObjectiveFunction, nlopt_set_ftol_rel)
-  SIMPLE_CONFIG_OPTION(stopBasedOnObjectiveFunctionAbs, nlopt_set_ftol_abs)
-  SIMPLE_CONFIG_OPTION(stopBasedOnParameterChange, nlopt_set_xtol_rel)
-  SIMPLE_CONFIG_OPTION(stopBasedOnParameterChangeAbs, nlopt_set_xtol_abs1)
-  SIMPLE_CONFIG_OPTION(stopBasedOnMaxEvals, nlopt_set_maxeval)
-  SIMPLE_CONFIG_OPTION(stopBasedOnMaxTime, nlopt_set_maxtime)
+  SIMPLE_CONFIG_OPTION(fToleranceRelative, nlopt_set_ftol_rel)
+  SIMPLE_CONFIG_OPTION(fToleranceAbsolute, nlopt_set_ftol_abs)
+  SIMPLE_CONFIG_OPTION(xToleranceRelative, nlopt_set_xtol_rel)
+  SIMPLE_CONFIG_OPTION(xToleranceAbsolute, nlopt_set_xtol_abs1)
+  SIMPLE_CONFIG_OPTION(maxEval, nlopt_set_maxeval)
+  SIMPLE_CONFIG_OPTION(maxTime, nlopt_set_maxtime)
 
   GET_VALUE(Array, inequalityConstraints, options)
   if(!val_inequalityConstraints.IsEmpty()){

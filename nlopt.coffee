@@ -75,9 +75,9 @@ module.exports = (options)->
 		#initalGuess
 		if options.initalGuess and !isArrayOfDoubles(options.initalGuess) then throw "'initalGuess' should be an array of doubles"
 		#simple parms
-		for parm in ["stopValue", "stopBasedOnObjectiveFunction", "stopBasedOnObjectiveFunctionAbs", "stopBasedOnParameterChange", "stopBasedOnParameterChangeAbs", "stopBasedOnMaxEvals", "stopBasedOnMaxTime"]
+		for parm in ["stopValue", "fToleranceRelative", "fToleranceAbsolute", "xToleranceRelative", "xToleranceAbsolute", "maxEval", "maxTime"]
 			if options[parm] and !_.isNumber(options[parm]) then throw "'#{parm}' must be a double"
-	
+
 	#do the optimization
 	return optimize(options);
 	#ret = optimize(options)
