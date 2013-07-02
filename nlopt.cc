@@ -103,21 +103,24 @@ double optimizationFunc(unsigned n, const double* x, double* grad, void* ptrCall
   argv[1] = cArrayToV8Array(n, x);
   //gradient
   Local<Array> v8Grad;
-  if(grad != NULL){
+  if(grad){
     v8Grad = cArrayToV8Array(n, grad);
+    argv[2] = v8Grad;
   }
-  argv[2] = v8Grad;
+  else {
+    argv[2] = Local<Value>::New(Null());
+  }
   //call callback
   Local<Value> ret = callback->Call(Context::GetCurrent()->Global(), 3, argv);
   //validate return results
   if(!ret->IsNumber()){
     ThrowException(Exception::TypeError(String::New("Objective or constraint function must return a number.")));
   }
-  else if(!v8Grad.IsEmpty() && v8Grad->Length() != n){
+  else if(grad && v8Grad->Length() != n){
     ThrowException(Exception::TypeError(String::New("Length of gradient array must be the same as the number of parameters.")));
   }
   else { //success
-    if(!v8Grad.IsEmpty()){
+    if(grad){
       for (unsigned i = 0; i < n; ++i) {
         grad[i] = v8Grad->Get(i)->NumberValue();
       }
@@ -139,15 +142,7 @@ Handle<Value> Optimize(const Arguments& args) {
 
   //basic nlopt config
   GET_VALUE(Number, algorithm, options)
-  if(val_algorithm.IsEmpty()){
-    ThrowException(Exception::TypeError(String::New("algorithm must be specified")));
-    return scope.Close(ret);
-  }
   GET_VALUE(Number, numberOfParameters, options)
-  if(val_numberOfParameters.IsEmpty()) {
-    ThrowException(Exception::TypeError(String::New("numberOfParameters must be specified")));
-    return scope.Close(ret);
-  }
   unsigned n = val_numberOfParameters->Uint32Value();
   nlopt_opt opt;
   opt = nlopt_create((nlopt_algorithm)val_algorithm->Uint32Value(), n);

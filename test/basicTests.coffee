@@ -7,7 +7,7 @@ describe('basic', ()->
   checkResults = (actual, expected)->
     equal = _.isEqual(actual, expected, (a,b)->
       if _.isNumber(a) and _.isNumber(b)
-        expect(a).to.be.within(b-.1,b+.1)
+        expect(a).to.be.within(b-.01,b+.01)
         return true
       return undefined
     )
