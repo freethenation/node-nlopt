@@ -46,6 +46,7 @@ algorithms = [
 
 optimize = require('./build/Release/nlopt').optimize
 module.exports = (options)->
+	options = _.cloneDeep(options);#copy so we dont have to worry about modifying the options
 	#algorithm
 	if !options.algorithm then throw "'algorithm' must be specified"
 	options.algorithm = _.indexOf(algorithms, options.algorithm.replace("NLOPT_",""))

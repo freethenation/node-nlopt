@@ -51,22 +51,22 @@ void checkNloptErrorCode(Local<Object>& errors, Local<String>& operation, nlopt_
       str = "Success: Optimization stopped because maxTime was reached";
       break;
     case NLOPT_FAILURE:
-      str = "Failer";
+      str = "Failure";
       break;
     case NLOPT_INVALID_ARGS:
-      str = "Failer: Invalid arguments";
+      str = "Failure: Invalid arguments";
       break;
     case NLOPT_OUT_OF_MEMORY:
-      str = "Failer: Ran out of memory";
+      str = "Failure: Ran out of memory";
       break;
     case NLOPT_ROUNDOFF_LIMITED:
-      str = "Failer: Halted because roundoff errors limited progress";
+      str = "Failure: Halted because roundoff errors limited progress";
       break;
     case NLOPT_FORCED_STOP:
-      str = "Failer: Halted because of a forced termination";
+      str = "Failure: Halted because of a forced termination";
       break;
     default:
-      str = "Failer: Unknown Error Code";
+      str = "Failure: Unknown Error Code";
       break;
   }
   //set error message for operation

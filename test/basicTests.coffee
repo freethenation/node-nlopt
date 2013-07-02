@@ -11,7 +11,44 @@ describe('basic', ()->
         return true
       return undefined
     )
-    if !equal then throw "#{JSON.stringify(a)} does not equal #{JSON.stringify(b)}"
+    if !equal then throw "#{if actual then JSON.stringify(actual) else 'undefined' } does not equal #{if expected then JSON.stringify(expected) else 'undefined'}"
+
+  it('newton + simplex', ()->
+    objectiveFunc = (n, x, grad)->
+      if(grad)
+        grad[0] = 16*x[0] - 4*x[0]*x[0]*x[0]
+      x = 4 + 8*x[0]*x[0] - x[0]*x[0]*x[0]*x[0]
+
+    #example from
+    #http://www-rohan.sdsu.edu/~jmahaffy/courses/f00/math122/lectures/newtons_method/newtonmethodeg.html
+    expectedResult = { 
+      maxObjectiveFunction: 'Success'
+      lowerBounds: 'Success'
+      upperBounds: 'Success'
+      xToleranceRelative: 'Success'
+      inequalityConstraints: 'Failure: Invalid arguments'
+      initalGuess: 'Success'
+      status: 'Success'
+      parameterValues: [ -2.00000000000279 ]
+      outputValue: 20 
+    }
+    options = {
+      algorithm: "NLOPT_LD_TNEWTON_PRECOND_RESTART"
+      numberOfParameters:1
+      maxObjectiveFunction: objectiveFunc
+      inequalityConstraints:[{callback:(()->),tolerance:1}]#should not work for newton
+      xToleranceRelative:1e-4
+      initalGuess:[-1]
+      lowerBounds:[-10]
+      upperBounds:[10]
+    }
+    checkResults(nlopt(options), expectedResult)
+    expectedResult.parameterValues[0] = 2
+    options.initalGuess[0] = 2.5
+    checkResults(nlopt(options), expectedResult)
+    options.algorithm = "LN_NELDERMEAD"
+    checkResults(nlopt(options), expectedResult)
+  )
   it('example', ()->
     myfunc = (n, x, grad)->
       if(grad)
