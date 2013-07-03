@@ -9,6 +9,8 @@ describe('basic', ()->
       if _.isNumber(a) and _.isNumber(b)
         expect(a).to.be.within(b-.01,b+.01)
         return true
+      if _.isString(a) and _.isString(b) and a.indexOf("Success")==0 and b.indexOf("Success")==0
+        return true
       return undefined
     )
     if !equal then throw "#{if actual then JSON.stringify(actual) else 'undefined' } does not equal #{if expected then JSON.stringify(expected) else 'undefined'}"
