@@ -107,7 +107,7 @@
   'conditions': [
       ['OS=="win"', {
         'defines': [
-          'TIME_WITH_SYS_TIME=0',
+          'TIME_WITH_SYS_TIME 0',
           'THREADLOCAL=__declspec(thread)',
           'HAVE_COPYSIGN 0',
           'HAVE_ISINF 0',
