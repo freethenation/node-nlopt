@@ -5,7 +5,6 @@
   "main": "hello.js",
   "gypfile": true,
   "dependencies": {
-    "node-gyp": "*",
     "lodash": "*"
   },
   "devDependencies": {
