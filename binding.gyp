@@ -7,7 +7,7 @@
 	     "./nlopt-2.3/api/"
 	   ],
 	    "dependencies": [
-       		"./nlopt-2.3/binding.gyp:nlopt"
+       		"./nlopt-2.3/nlopt.gyp:nloptlib"
     	]
     }
   ]

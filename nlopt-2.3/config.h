@@ -11,7 +11,8 @@
 /* #undef HAVE_BSDGETTIMEOFDAY */
 
 /* Define if the copysign function/macro is available. */
-#define HAVE_COPYSIGN 1
+//in binding.gyp
+//#define HAVE_COPYSIGN 1
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #define HAVE_DLFCN_H 1
@@ -26,16 +27,19 @@
 #define HAVE_GETTID_SYSCALL 1
 
 /* Define to 1 if you have the `gettimeofday' function. */
-#define HAVE_GETTIMEOFDAY 1
+//in binding.gyp
+//#define HAVE_GETTIMEOFDAY 1
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
 
 /* Define if the isinf() function/macro is available. */
-#define HAVE_ISINF 1
+//in binding.gyp
+//#define HAVE_ISINF 1
 
 /* Define if the isnan() function/macro is available. */
-#define HAVE_ISNAN 1
+//in binding.gyp
+//#define HAVE_ISNAN 1
 
 /* Define to 1 if you have the `m' library (-lm). */
 #define HAVE_LIBM 1
@@ -118,10 +122,12 @@
 
 /* Define to C thread-local keyword, or to nothing if this is not supported in
    your compiler. */
-#define THREADLOCAL __thread
+//in binding.gyp
+//#define THREADLOCAL __thread
 
 /* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
-#define TIME_WITH_SYS_TIME 1
+//in binding.gyp
+//#define TIME_WITH_SYS_TIME 1
 
 /* Version number of package */
 #define VERSION "2.3"

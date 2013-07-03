@@ -134,7 +134,7 @@ double optimizationFunc(unsigned n, const double* x, double* grad, void* ptrCall
 Handle<Value> Optimize(const Arguments& args) {
   HandleScope scope;
   Local<Object> ret = Local<Object>::New(Object::New());
-  nlopt_result code;
+  nlopt_result code = NLOPT_SUCCESS;
   Local<String> key;
 
   //There is not much validation in this function... should be done in js.
@@ -214,7 +214,8 @@ Handle<Value> Optimize(const Arguments& args) {
   }
 
   //setup parms for optimization
-  double input[n];
+  double* input;
+  input = new double[n];
   for (unsigned i = 0; i < n; ++i) {
     input[i] = 0;
   }
@@ -231,6 +232,7 @@ Handle<Value> Optimize(const Arguments& args) {
   double output[1] = {0};
   checkNloptErrorCode(ret, key, nlopt_optimize(opt, input, output));
   ret->Set(String::NewSymbol("parameterValues"), cArrayToV8Array(n, input));
+  delete input;
   ret->Set(String::NewSymbol("outputValue"), Number::New(output[0]));
   nlopt_destroy(opt);//cleanup
   return scope.Close(ret);
