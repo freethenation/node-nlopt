@@ -116,12 +116,12 @@
         ]
       },{ # OS != "win"
         'defines': [
-          'TIME_WITH_SYS_TIME 1',
+          'TIME_WITH_SYS_TIME=1',
           'THREADLOCAL=__thread',
-          'HAVE_COPYSIGN 1',
-          'HAVE_ISINF 1',
-          'HAVE_ISNAN 1',
-          'HAVE_GETTIMEOFDAY 1'
+          'HAVE_COPYSIGN=1',
+          'HAVE_ISINF=1',
+          'HAVE_ISNAN=1',
+          'HAVE_GETTIMEOFDAY=1'
         ]
   }]]
 }]}
