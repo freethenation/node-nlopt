@@ -4,10 +4,6 @@
   "description": "A numerical optimization library for node. A wrapper around nlopt.",
   "main": "hello.js",
   "gypfile": true,
-  "scripts":{
-    "preinstall":"cd ./nlopt-2.3/ && make clean && ./configure",
-    "install":"node-gyp rebuild"
-  },
   "dependencies": {
     "node-gyp": "*",
     "lodash": "*"

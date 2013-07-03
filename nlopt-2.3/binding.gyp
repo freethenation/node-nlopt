@@ -103,5 +103,5 @@
       './stogo/stogo_config.h',
       './stogo/stogo.h',
       './stogo/tools.h'
-    ]
+  ]
 }]}
