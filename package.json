@@ -1,8 +1,27 @@
 {
   "name": "nlopt",
-  "version": "0.0.0",
-  "description": "A numerical optimization library for node. A wrapper around nlopt.",
-  "main": "hello.js",
+  "version": "0.0.1",
+  "description": "A numerical nonlinear optimization library for node. A wrapper around nlopt.",
+  "homepage": "https://github.com/freethenation/node-nlopt",
+  "keywords": [
+    "numeical",
+    "nlopt",
+    "nonlinear",
+    "optimization",
+    "nelder",
+    "mead",
+    "simplex",
+    "COBYLA",
+    "newton",
+    "MMA",
+    "MLSL"
+  ],
+  "author": "Richard Klafter <rpklafter@yahoo.com>",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/freethenation/node-nlopt.git"
+  },
+  "main": "nlopt",
   "gypfile": true,
   "dependencies": {
     "lodash": "*"
