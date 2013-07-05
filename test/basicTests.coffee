@@ -15,6 +15,43 @@ describe('basic', ()->
     )
     if !equal then throw "#{if actual then JSON.stringify(actual) else 'undefined' } does not equal #{if expected then JSON.stringify(expected) else 'undefined'}"
 
+  it('MLE Example', ()->
+    data = [
+      0.988877, 0.991881, 0.739757, 0.940761, 0.986811, 0.903514,
+      0.984382, 0.888095, 0.864229, 0.95791, 0.915919, 0.990257, 0.94347,
+      0.89609, 0.996033, 0.873548, 0.899078, 0.893999, 0.900032, 0.945644,
+      0.843792, 0.932261, 0.810629, 0.971378, 0.994914, 0.954882, 0.96594,
+      0.995431, 0.867875, 0.988802, 0.989609, 0.988265, 0.937092, 0.949935,
+      0.880011, 0.872334, 0.880399, 0.96665, 0.774511, 0.848686, 0.863713,
+      0.897073, 0.959902, 0.885167, 0.943062, 0.898766, 0.825464, 0.999472,
+      0.924695, 0.874632
+    ]
+    erfc = (x)->
+      z = Math.abs(x)
+      t = 1 / (1 + z / 2)
+      r = t * Math.exp(-z * z - 1.26551223 + t * (1.00002368 +
+        t * (0.37409196 + t * (0.09678418 + t * (-0.18628806 +
+        t * (0.27886807 + t * (-1.13520398 + t * (1.48851587 +
+        t * (-0.82215223 + t * 0.17087277)))))))))
+      return if x >= 0 then r else 2 - r
+    sq = (x)->x*x
+    log = Math.log
+    objectiveFunc = (n, x)->
+      return _.reduce(data, (sum, val)->
+        return sum + -0.9189385332046727 - (0.5*sq(val - x[0]))/sq(x[1]) - log(x[1]) - log(0.5*erfc((0.7071067811865475*(-1 + x[0]))/x[1]) - 0.5*erfc((0.7071067811865475*x[0])/x[1]))
+      , 0)
+
+    options = {
+      algorithm: "LN_NELDERMEAD"
+      numberOfParameters:2
+      maxObjectiveFunction: objectiveFunc
+      xToleranceRelative:1e-4
+      initalGuess:[0.5, 0.5]
+      lowerBounds:[0, -5]
+      upperBounds:[1, 5]
+    }
+  )
+
   it('newton + simplex', ()->
     objectiveFunc = (n, x, grad)->
       if(grad)
