@@ -37,8 +37,9 @@ describe('basic', ()->
     sq = (x)->x*x
     log = Math.log
     objectiveFunc = (n, x)->
+      partial = -0.9189385332046727 - log(x[1]) - log(0.5*erfc((0.7071067811865475*(-1 + x[0]))/x[1]) - 0.5*erfc((0.7071067811865475*x[0])/x[1]))
       return _.reduce(data, (sum, val)->
-        return sum + -0.9189385332046727 - (0.5*sq(val - x[0]))/sq(x[1]) - log(x[1]) - log(0.5*erfc((0.7071067811865475*(-1 + x[0]))/x[1]) - 0.5*erfc((0.7071067811865475*x[0])/x[1]))
+        return sum - (0.5*sq(val - x[0]))/sq(x[1]) + partial
       , 0)
 
     options = {
@@ -50,6 +51,17 @@ describe('basic', ()->
       lowerBounds:[0, -5]
       upperBounds:[1, 5]
     }
+    expectedResult = { 
+      maxObjectiveFunction: 'Success',
+      lowerBounds: 'Success',
+      upperBounds: 'Success',
+      xToleranceRelative: 'Success',
+      initalGuess: 'Success',
+      status: 'Success: Optimization stopped because xToleranceRelative or xToleranceAbsolute was reached',
+      parameterValues: [ 1, 0.1 ],
+      outputValue: 78.4539 
+    }
+    checkResults(nlopt(options), expectedResult)
   )
 
   it('newton + simplex', ()->
