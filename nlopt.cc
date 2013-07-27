@@ -232,7 +232,7 @@ Handle<Value> Optimize(const Arguments& args) {
   double output[1] = {0};
   checkNloptErrorCode(ret, key, nlopt_optimize(opt, input, output));
   ret->Set(String::NewSymbol("parameterValues"), cArrayToV8Array(n, input));
-  delete input;
+  delete[] input;
   ret->Set(String::NewSymbol("outputValue"), Number::New(output[0]));
   nlopt_destroy(opt);//cleanup
   return scope.Close(ret);
