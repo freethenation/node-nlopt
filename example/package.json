@@ -1,0 +1,15 @@
+{
+  "name": "nlopt-example",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Doron Tohar <doron.tohar@gmail.com> (https://www.kimaia.com/)",
+  "license": "ISC",
+  "dependencies": {
+    "nlopt": "../"
+  },
+  "devDependencies": {}
+}

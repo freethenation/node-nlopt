@@ -9,10 +9,10 @@ using namespace v8;
 
 Local<Array> cArrayToV8Array(unsigned n, const double* array)
 {
-  Local<Array> ret = Local<Array>::New(Array::New(n));
+  Local<Array> ret = Local<Array>::New(v8::Isolate::GetCurrent(), Array::New(v8::Isolate::GetCurrent(), n));
   for (unsigned i = 0; i < n; ++i)
   {
-    ret->Set(i, Number::New(array[i]));
+    ret->Set(i, Number::New(v8::Isolate::GetCurrent(), array[i]));
   }
   return ret;
 }
@@ -70,11 +70,11 @@ void checkNloptErrorCode(Local<Object>& errors, Local<String>& operation, nlopt_
       break;
   }
   //set error message for operation
-  errors->Set(operation, String::New(str));
+  errors->Set(operation, String::NewFromUtf8(v8::Isolate::GetCurrent(), str));
 }
 
 #define GET_VALUE(TYPE, NAME, OBJ) \
-  Local<String> key_##NAME = Local<String>::New(String::NewSymbol(#NAME)); \
+  Local<String> key_##NAME = String::NewFromUtf8(v8::Isolate::GetCurrent(), #NAME); \
   Local<TYPE> val_##NAME; \
   if(OBJ->Has(key_##NAME)){ \
     val_##NAME = Local<TYPE>::Cast(OBJ->Get(key_##NAME)); \
@@ -92,14 +92,14 @@ void checkNloptErrorCode(Local<Object>& errors, Local<String>& operation, nlopt_
 
 double optimizationFunc(unsigned n, const double* x, double* grad, void* ptrCallback)
 {
-  HandleScope scope;
+  EscapableHandleScope scope(v8::Isolate::GetCurrent());
   Local<Value> undefined;
   Function* callback = (Function*)ptrCallback;
   double returnValue = -1;
 
   //prepare parms to callback
   Local<Value> argv[3];
-  argv[0] = Local<Value>::New(Number::New(n));
+  argv[0] = Local<Value>::New(v8::Isolate::GetCurrent(), Number::New(v8::Isolate::GetCurrent(), n));
   argv[1] = cArrayToV8Array(n, x);
   //gradient
   Local<Array> v8Grad;
@@ -108,16 +108,16 @@ double optimizationFunc(unsigned n, const double* x, double* grad, void* ptrCall
     argv[2] = v8Grad;
   }
   else {
-    argv[2] = Local<Value>::New(Null());
+    argv[2] = Local<Value>::New(v8::Isolate::GetCurrent(), v8::Null(v8::Isolate::GetCurrent()));
   }
   //call callback
-  Local<Value> ret = callback->Call(Context::GetCurrent()->Global(), 3, argv);
+  Local<Value> ret = callback->Call(v8::Isolate::GetCurrent()->GetCurrentContext()->Global(), 3, argv);
   //validate return results
   if(!ret->IsNumber()){
-    ThrowException(Exception::TypeError(String::New("Objective or constraint function must return a number.")));
+    v8::Isolate::GetCurrent()->ThrowException(Exception::TypeError(String::NewFromUtf8(v8::Isolate::GetCurrent(), "Objective or constraint function must return a number.")));
   }
   else if(grad && v8Grad->Length() != n){
-    ThrowException(Exception::TypeError(String::New("Length of gradient array must be the same as the number of parameters.")));
+    v8::Isolate::GetCurrent()->ThrowException(Exception::TypeError(String::NewFromUtf8(v8::Isolate::GetCurrent(), "Length of gradient array must be the same as the number of parameters.")));
   }
   else { //success
     if(grad){
@@ -127,13 +127,13 @@ double optimizationFunc(unsigned n, const double* x, double* grad, void* ptrCall
     }
     returnValue = ret->NumberValue();
   }
-  scope.Close(undefined);
+  scope.Escape(undefined);
   return returnValue;
 }
 
-Handle<Value> Optimize(const Arguments& args) {
-  HandleScope scope;
-  Local<Object> ret = Local<Object>::New(Object::New());
+void Optimize(const FunctionCallbackInfo<Value>& args) {
+  EscapableHandleScope scope(v8::Isolate::GetCurrent());
+  Local<Object> ret = Local<Object>::New(v8::Isolate::GetCurrent(), Object::New(v8::Isolate::GetCurrent()));
   nlopt_result code = NLOPT_SUCCESS;
   Local<String> key;
 
@@ -159,8 +159,10 @@ Handle<Value> Optimize(const Arguments& args) {
     CHECK_CODE(maxObjectiveFunction)
   }
   else{
-    ThrowException(Exception::TypeError(String::New("minObjectiveFunction or maxObjectiveFunction must be specified")));
-    return scope.Close(ret);
+    v8::Isolate::GetCurrent()->ThrowException(Exception::TypeError(String::NewFromUtf8(v8::Isolate::GetCurrent(), "minObjectiveFunction or maxObjectiveFunction must be specified")));
+    //return scope.Escape(ret);
+    args.GetReturnValue().Set(scope.Escape(ret));
+    return;
   }
 
   //optional parms
@@ -222,25 +224,26 @@ Handle<Value> Optimize(const Arguments& args) {
   //initalGuess
   GET_VALUE(Array, initalGuess, options)
   if(!val_initalGuess.IsEmpty()){
-    ret->Set(key_initalGuess, String::New("Success"));
+    ret->Set(key_initalGuess, String::NewFromUtf8(v8::Isolate::GetCurrent(), "Success"));
     for (unsigned i = 0; i < val_initalGuess->Length(); ++i) {
       input[i] = val_initalGuess->Get(i)->NumberValue();
     }
   }
   //do the optimization!
-  key = Local<String>::New(String::NewSymbol("status"));
+  key = String::NewFromUtf8(v8::Isolate::GetCurrent(), "status");
   double output[1] = {0};
   checkNloptErrorCode(ret, key, nlopt_optimize(opt, input, output));
-  ret->Set(String::NewSymbol("parameterValues"), cArrayToV8Array(n, input));
-  delete input;
-  ret->Set(String::NewSymbol("outputValue"), Number::New(output[0]));
+  ret->Set(String::NewFromUtf8(v8::Isolate::GetCurrent(), "parameterValues"), cArrayToV8Array(n, input));
+  delete[] input;
+  ret->Set(String::NewFromUtf8(v8::Isolate::GetCurrent(), "outputValue"), Number::New(v8::Isolate::GetCurrent(), output[0]));
   nlopt_destroy(opt);//cleanup
-  return scope.Close(ret);
+  args.GetReturnValue().Set(scope.Escape(ret));
 }
 
 void init(Handle<Object> exports) {
-  exports->Set(String::NewSymbol("optimize"),
-      FunctionTemplate::New(Optimize)->GetFunction());
+  exports->Set(String::NewFromUtf8(v8::Isolate::GetCurrent(), "optimize"),
+      FunctionTemplate::New(v8::Isolate::GetCurrent(), FunctionCallback(Optimize))->GetFunction());
 }
+
 
 NODE_MODULE(nlopt, init)
