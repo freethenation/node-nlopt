@@ -28,11 +28,10 @@
   },
   "devDependencies": {
     "coffee-script": "*",
-    "file": "*",
-    "open": "*",
-    "request": "*",
+    "ctrl": "*",
     "expect.js": "*",
+    "file": "*",
     "mocha": "*",
-    "ctrl": "*"
+    "request": "*"
   }
 }
