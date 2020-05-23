@@ -1,5 +1,5 @@
 (function() {
-  var algorithms, optimize, _;
+  var _, algorithms, optimize;
 
   _ = require("lodash");
 
@@ -8,7 +8,7 @@
   optimize = require('./build/Release/nlopt').optimize;
 
   module.exports = function(options) {
-    var isArrayOfCallbackTolObjects, isArrayOfDoubles, parm, _i, _len, _ref;
+    var i, isArrayOfCallbackTolObjects, isArrayOfDoubles, len, parm, ref;
     options = _.cloneDeep(options);
     if (!options.algorithm) {
       throw "'algorithm' must be specified";
@@ -58,9 +58,9 @@
       if (options.initalGuess && !isArrayOfDoubles(options.initalGuess)) {
         throw "'initalGuess' should be an array of doubles";
       }
-      _ref = ["stopValue", "fToleranceRelative", "fToleranceAbsolute", "xToleranceRelative", "xToleranceAbsolute", "maxEval", "maxTime"];
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        parm = _ref[_i];
+      ref = ["stopValue", "fToleranceRelative", "fToleranceAbsolute", "xToleranceRelative", "xToleranceAbsolute", "maxEval", "maxTime"];
+      for (i = 0, len = ref.length; i < len; i++) {
+        parm = ref[i];
         if (options[parm] && !_.isNumber(options[parm])) {
           throw "'" + parm + "' must be a double";
         }

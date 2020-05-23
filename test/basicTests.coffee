@@ -5,15 +5,12 @@ request = require("request")
 
 describe('basic', ()->
   checkResults = (actual, expected)->
-    equal = _.isEqual(actual, expected, (a,b)->
+    equal = _.isEqualWith(actual, expected, (a,b)->
       if _.isNumber(a) and _.isNumber(b)
-        expect(a).to.be.within(b-.01,b+.01)
-        return true
-      if _.isString(a) and _.isString(b) and a.indexOf("Success")==0 and b.indexOf("Success")==0
-        return true
-      return undefined
+        return Math.abs(a-b) < 0.1
     )
-    if !equal then throw "#{if actual then JSON.stringify(actual) else 'undefined' } does not equal #{if expected then JSON.stringify(expected) else 'undefined'}"
+    if !equal
+      throw new Error("#{if actual then JSON.stringify(actual) else 'undefined' } does not equal #{if expected then JSON.stringify(expected) else 'undefined'}")
 
   it('MLE Example', ()->
     data = [
@@ -51,7 +48,7 @@ describe('basic', ()->
       lowerBounds:[0, -5]
       upperBounds:[1, 5]
     }
-    expectedResult = { 
+    expectedResult = {
       maxObjectiveFunction: 'Success',
       lowerBounds: 'Success',
       upperBounds: 'Success',
@@ -59,7 +56,7 @@ describe('basic', ()->
       initalGuess: 'Success',
       status: 'Success: Optimization stopped because xToleranceRelative or xToleranceAbsolute was reached',
       parameterValues: [ 1, 0.1 ],
-      outputValue: 78.4539 
+      outputValue: 78.4539
     }
     checkResults(nlopt(options), expectedResult)
   )
@@ -72,7 +69,7 @@ describe('basic', ()->
 
     #example from
     #http://www-rohan.sdsu.edu/~jmahaffy/courses/f00/math122/lectures/newtons_method/newtonmethodeg.html
-    expectedResult = { 
+    expectedResult = {
       maxObjectiveFunction: 'Success'
       lowerBounds: 'Success'
       upperBounds: 'Success'
@@ -81,7 +78,7 @@ describe('basic', ()->
       initalGuess: 'Success'
       status: 'Success'
       parameterValues: [ -2.00000000000279 ]
-      outputValue: 20 
+      outputValue: 20
     }
     options = {
       algorithm: "NLOPT_LD_TNEWTON_PRECOND_RESTART"
@@ -98,6 +95,7 @@ describe('basic', ()->
     options.initalGuess[0] = 2.5
     checkResults(nlopt(options), expectedResult)
     options.algorithm = "LN_NELDERMEAD"
+    expectedResult.status = 'Success: Optimization stopped because xToleranceRelative or xToleranceAbsolute was reached'
     checkResults(nlopt(options), expectedResult)
   )
   it('example', ()->
@@ -116,7 +114,7 @@ describe('basic', ()->
           return tmp * tmp * tmp - x[1]
         tolerance:1e-8
       }
-    expectedResult = { 
+    expectedResult = {
       minObjectiveFunction: 'Success'
       lowerBounds: 'Success'
       xToleranceRelative: 'Success'
@@ -124,7 +122,7 @@ describe('basic', ()->
       initalGuess: 'Success'
       status: 'Success: Optimization stopped because xToleranceRelative or xToleranceAbsolute was reached'
       parameterValues: [ 0.33333333465873644, 0.2962962893886998 ]
-      outputValue: 0.5443310476067847 
+      outputValue: 0.5443310476067847
     }
     options = {
       algorithm: "LD_MMA"
