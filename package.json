@@ -1,6 +1,6 @@
 {
   "name": "nlopt",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A numerical nonlinear optimization library for node. A wrapper around nlopt.",
   "homepage": "https://github.com/freethenation/node-nlopt",
   "keywords": [
@@ -21,7 +21,7 @@
     "type": "git",
     "url": "https://github.com/freethenation/node-nlopt.git"
   },
-  "main": "nlopt",
+  "main": "nlopt.js",
   "gypfile": true,
   "dependencies": {
     "lodash": "*"
@@ -35,5 +35,9 @@
     "mocha": "*",
     "open": "^7.0.4",
     "request": "*"
+  },
+  "scripts": {
+    "build": "cake build",
+    "test": "cake test"
   }
 }
