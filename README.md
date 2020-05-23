@@ -12,7 +12,7 @@ Running this command builds nlopt which is a c library. I have tested that it bu
 The library defines a single method. A simple example of how to use the library can be found below. This is the same example used in the [tutorial at NLopt's website](http://ab-initio.mit.edu/wiki/index.php/NLopt_Tutorial).
 
 ```javascript
-var nlopt = requires('nlopt');
+var nlopt = require('nlopt');
 var myfunc = function(n, x, grad){
   if(grad){
     grad[0] = 0.0;
